@@ -1,31 +1,37 @@
 import {Account, Avatars, Client, Databases, ID, Query, Storage} from "react-native-appwrite";
 import {CreateUserPrams, GetMenuParams, SignInParams} from "@/type";
 export const appwriteConfig = {
-    endpoint: process.env.EXPO_PUBLIC_APPWRITE_ENDPOINT,
+    endpoint: process.env.EXPO_PUBLIC_APPWRITE_ENDPOINT!,
     platform: "com.Ben.Mobile_App",
-    projectId: process.env.EXPO_PUBLIC_APPWRITE_PROJECT_ID,
+    projectId: process.env.EXPO_PUBLIC_APPWRITE_PROJECT_ID!,
     databaseId: "6873cde00029936298d8",
-    userColletionId: "6873ce1800385c5d7498"
+    bucketId: '6893a1670001fda8659f',
+    userColletionId: "6873ce1800385c5d7498",
+    categoriesCollectionId: "68939dda00107bb61f27",
+    menuCollectionId: '68939ebc00318f1c08dd',
+    customizationsCollectionId: '68939fb000151f92ac68',
+    menuCustomizationsCollectionId: '6893a05800057118a34f'
 }
 
 export const client = new Client();
 
 client
-    .setEndpoint(appwriteConfig.endpoint!)
-    .setProject(appwriteConfig.projectId!)
+    .setEndpoint(appwriteConfig.endpoint)
+    .setProject(appwriteConfig.projectId)
     .setPlatform(appwriteConfig.platform)
 
 export const account = new Account(client);
 export const databases = new Databases(client);
+export const storage = new Storage(client);
 const avatars = new Avatars(client);
 
 export const createUser = async ({ email, password, name }: CreateUserPrams) => {
     try {
         const newAccount = await account.create(ID.unique(), email, password, name)
-
         if(!newAccount) throw Error;
 
-        await signIn({ email, password});
+        await signIn({ email, password });
+
         const avatarUrl = avatars.getInitialsURL(name);
 
         return await databases.createDocument(
@@ -34,7 +40,6 @@ export const createUser = async ({ email, password, name }: CreateUserPrams) => 
             ID.unique(),
             { email, name, accountId: newAccount.$id, avatar: avatarUrl }
         );
-
     } catch (e) {
         throw new Error(e as string);
     }
@@ -64,6 +69,38 @@ export const getCurrentUser = async () => {
         return currentUser.documents[0];
     } catch (e) {
         console.log(e);
+        throw new Error(e as string);
+    }
+}
+
+export const getMenu = async ({ category, query }: GetMenuParams) => {
+    try {
+        const queries: string[] = [];
+
+        if(category) queries.push(Query.equal('categories', category));
+        if(query) queries.push(Query.search('name', query));
+
+        const menus = await databases.listDocuments(
+            appwriteConfig.databaseId,
+            appwriteConfig.menuCollectionId,
+            queries,
+        )
+
+        return menus.documents;
+    } catch (e) {
+        throw new Error(e as string);
+    }
+}
+
+export const getCategories = async () => {
+    try {
+        const categories = await databases.listDocuments(
+            appwriteConfig.databaseId,
+            appwriteConfig.categoriesCollectionId,
+        )
+
+        return categories.documents;
+    } catch (e) {
         throw new Error(e as string);
     }
 }

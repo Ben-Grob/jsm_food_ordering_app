@@ -33,14 +33,14 @@ const SignIn = () => {
     <View className='gap-10 bg-white rounded-lg pd-5 mt-5'>
       <CustomInput
             placeholder="Enter your email"
-            value={'form.email'}
+            value={form.email}
             onChangeText={(text) => setForm((prev) => ({ ...prev, email: text}))}
             label="Email"
             keyboardType="email-address"
         />
       <CustomInput
             placeholder="Enter your email"
-            value={'form.passsword'}
+            value={form.password}
             onChangeText={(text) => setForm((prev) => ({ ...prev, password: text}))}
             label="Password"
             secureTextEntry={true}
